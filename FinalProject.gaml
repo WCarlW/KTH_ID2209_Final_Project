@@ -26,6 +26,7 @@ species PartyPeople skills:[fipa,moving]
 {	
 	// Personal trait
 	int noiseDegree <- rnd(10);
+	int generous <- rnd(10);
 	
 	// Shop attributes preference
 	float pref_lightshow <- rnd(9) / 10;
@@ -39,6 +40,7 @@ species PartyPeople skills:[fipa,moving]
 	float barUtility <- 0.0;
 	point concertLocation <- nil;
 	float concertUtility <- 0.0;
+	list<ChillPeople> ChillPeopleAtBar <- [];
 	
 	
 	// Party people is looking for a place to go
@@ -88,7 +90,7 @@ species PartyPeople skills:[fipa,moving]
 		do goto target:targetLocation;
 	}
 	
-	// Interact with chill people
+	// Tell Chill people noise degree
 	reflex handle_requests when: !empty(requests) 
 	{
 		message m <- (requests at 0);
@@ -99,6 +101,26 @@ species PartyPeople skills:[fipa,moving]
 		}
 	}
 	
+	// -----------------------Not Finished
+	reflex MeetChillPeople when:targetLocation = barLocation and location = barLocation
+	{
+		// Create a list of party poeple who is at the bar
+		ask agents of_species ChillPeople
+		{
+			if self.location = myself.barLocation and !(self in myself.ChillPeopleAtBar){
+				myself.ChillPeopleAtBar << self;	
+			}
+		}
+
+		// If there are party people at the bar, ask for their noise degree
+		if ChillPeopleAtBar != []{
+			write string(ChillPeopleAtBar) + " are in the bar, and " + ChillPeopleAtBar[0] + " will be bought a drink";
+			do start_conversation (to :: [ChillPeopleAtBar[0]], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['buy you a drink']);
+		}
+		
+	}
+	// -------------------------------------
+	
 	aspect base {
 		draw circle(1) color: #red;	
 	}
@@ -108,6 +130,7 @@ species ChillPeople skills:[fipa,moving]
 {
 	// Personal trait
 	int acceptNoiseDegree <- rnd(10);
+	
 	
 	// Shop attributes preference
 	float pref_lightshow <- rnd(9) / 10;
@@ -181,16 +204,14 @@ species ChillPeople skills:[fipa,moving]
 				myself.PartyPeopleAtBar << self;	
 			}
 		}
-		
-//		write PartyPeopleAtBar + " are currently in the bar";
-		// If there are party people at the bar
+
+		// If there are party people at the bar, ask for their noise degree
 		if PartyPeopleAtBar != []{
-			do start_conversation (to :: PartyPeopleAtBar, protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['request attributes']);
-		}
-		
+			do start_conversation (to :: PartyPeopleAtBar, protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['request noise degree']);
+		}	
 	}
 	
-	// Interact with party people at the bar
+	// Decide whether to leave the bar or not based on party people's noise degree
 	reflex handle_agrees when: !empty(agrees) {
 		int highestNoiseDegree <- -1;
 		
@@ -206,7 +227,7 @@ species ChillPeople skills:[fipa,moving]
 		
 		if acceptNoiseDegree < highestNoiseDegree{
 			write name + " can accept noise " + acceptNoiseDegree + " and current noise is " + highestNoiseDegree;
-			write name + ": You guys are too loud. I'm going to concert.";
+			write name + ": You guys are too noisy. I'm going to concert.";
 			targetLocation <- concertLocation;
 		}
 		else{
