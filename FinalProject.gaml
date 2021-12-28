@@ -19,18 +19,18 @@ global {
 	bool RestaurantIsFull <- false;
 	
 	init {
-		create PartyPeople number:numberOfPartyPeople;
+		create PartyPeople number: numberOfPartyPeople;
 		create ChillPeople number: numberOfChillPeople;
 		create RockFan number: numberOfRockFan;
 		create Bars number: numberOfBars;
-		create Concerts number:numberOfConcerts;
-		create Restaurant number:numberOfRestaurant;
+		create Concerts number: numberOfConcerts;
+		create Restaurant number: numberOfRestaurant;
 	}
 }
 
-species PartyPeople skills:[fipa,moving]
-{	
-	// Personal trait
+species PartyPeople skills: [fipa, moving]
+{
+	// Personal traits
 	int noiseDegree <- rnd(10);
 	int generous <- rnd(10);
 	bool BoughtPeopleDrink <- false;
@@ -56,42 +56,41 @@ species PartyPeople skills:[fipa,moving]
 	list<Restaurant> RestaurantList <- nil;
 	
 	// Party people is looking for a place to go
-	reflex LookingForFun when:targetLocation = nil
+	reflex LookingForFun when: targetLocation = nil
 	{
 		do wander;
 	}
 	
 	// Calculate bar utility
-	reflex CalculateBarUtility when:utility = 0.0
+	reflex CalculateBarUtility when: utility = 0.0
 	{
-		ask Bars closest_to(location){
+		ask Bars closest_to(location) {
 			myself.barUtility <- (myself.pref_lightshow * self.lightshow) + (myself.pref_speakers * self.speakers) + (myself.pref_band * self.band)
 			 					+ (myself.pref_size * self.size) + (myself.pref_service * self.service);
-			write myself.name + " bar utility is " + myself.barUtility;
+			write myself.name + " closest bar utility is " + myself.barUtility;
 			myself.barLocation <- self.location;
 		}
 	}
 	
-	
 	// Calculate concert utility
-	reflex CalculateConcertUtility when:utility = 0.0
+	reflex CalculateConcertUtility when: utility = 0.0
 	{
-		ask Concerts closest_to(location){
+		ask Concerts closest_to(location) {
 			myself.concertUtility <- (myself.pref_lightshow * self.lightshow) + (myself.pref_speakers * self.speakers) 
 									+ (myself.pref_band * self.band) + (myself.pref_size * self.size) + (myself.pref_service * self.service);
-			write myself.name + " concert utility is " + myself.concertUtility;
-			myself.concertLocation <- self.location;	
+			write myself.name + " closest concert utility is " + myself.concertUtility;
+			myself.concertLocation <- self.location;
 		}
 	}
 	
 	// Compare the utility and choose a place to go
-	reflex PickAPlace when:utility = 0.0
+	reflex PickAPlace when: utility = 0.0
 	{
-		if barUtility >= concertUtility{
+		if barUtility >= concertUtility {
 			utility <- barUtility;
 			targetLocation <-barLocation;
 		}
-		else{
+		else {
 			utility <- concertUtility;
 			targetLocation <- concertLocation;
 		}
@@ -99,12 +98,11 @@ species PartyPeople skills:[fipa,moving]
 	}
 	
 	// Go to target location
-	reflex GoToTarget when:targetLocation != nil
+	reflex GoToTarget when: targetLocation != nil
 	{
-		do goto target:targetLocation;
+		do goto target: targetLocation;
 		// getting hungry
-		if (int(time) mod (rnd(30) + 30) = 0) and !GoingToRestaurant
-		{
+		if (int(time) mod (rnd(30) + 30) = 0) and !GoingToRestaurant {
 			hungry <- hungry + 1;
 		}		
 	}
@@ -122,7 +120,7 @@ species PartyPeople skills:[fipa,moving]
 	
 	// After chill people accept the drink
 	reflex handle_agrees when: !empty(agrees) {
-		loop a over:agrees{
+		loop a over: agrees {
 			write 'agree message with content ' + string(a.contents);
 			write name + ': Glad to hear that. $$$';
 			BoughtPeopleDrink <- true;
@@ -131,7 +129,7 @@ species PartyPeople skills:[fipa,moving]
 	
 	// After chill people refuse the drink
 	reflex handle_failures when: !empty(failures) {
-		loop f over:failures{
+		loop f over: failures {
 			write 'failure message with content ' + string(f.contents);
 			write name + ': Enjoy your night. $$$';
 			BoughtPeopleDrink <- false;
@@ -153,11 +151,11 @@ species PartyPeople skills:[fipa,moving]
 		// Restaurant has no seats
 	reflex WaitForSeats when: hungry > 8 and GoingToRestaurant and location distance_to restaurantLocation < 5 and location distance_to restaurantLocation > 0
 	{
-		if RestaurantIsFull{
+		if RestaurantIsFull {
 			targetLocation <- nil;
 			utility <- 0.0;
 		}
-		else{
+		else {
 			targetLocation <- restaurantLocation;
 		}
 	}
@@ -165,7 +163,7 @@ species PartyPeople skills:[fipa,moving]
 	// Leave restaurant
 	reflex FinishFood when: location = restaurantLocation and GoingToRestaurant
 	{
-		if (int(time) mod (rnd(30) + 40) = 0){
+		if (int(time) mod (rnd(30) + 40) = 0) {
 			write string(self) + ": I'm full now. I can get some fun again.";
 			do start_conversation (to :: RestaurantList, protocol :: 'fipa-contract-net', performative :: 'inform', contents :: ["Check out"]);
 			hungry <- 0;
@@ -181,16 +179,15 @@ species PartyPeople skills:[fipa,moving]
 		// Create a list of chill poeple at the bar
 		ask agents of_species ChillPeople
 		{
-			if self.location = myself.barLocation and !(self in myself.ChillPeopleAtBar){
+			if self.location = myself.barLocation and !(self in myself.ChillPeopleAtBar) {
 				myself.ChillPeopleAtBar << self;	
 			}
 		}
 		
-		
 		// If there are chill people at the bar, buy them a drink
 		if ChillPeopleAtBar != [] and generous >= 5 and !BoughtPeopleDrink {
-			loop c over:ChillPeopleAtBar{
-				if !(c in BoughtDrinkList){
+			loop c over: ChillPeopleAtBar {
+				if !(c in BoughtDrinkList) {
 					write string(ChillPeopleAtBar) + " are in the bar, and " + c + " will be bought a drink";
 					do start_conversation (to :: [c], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['buy you a drink']);
 					BoughtDrinkList << c;
@@ -198,7 +195,6 @@ species PartyPeople skills:[fipa,moving]
 				}
 			}
 		}
-		
 	}
 	
 	aspect base {
@@ -206,7 +202,7 @@ species PartyPeople skills:[fipa,moving]
 	}
 }
 
-species ChillPeople skills:[fipa,moving] 
+species ChillPeople skills: [fipa, moving] 
 {
 	// Personal trait
 	int acceptNoiseDegree <- rnd(10);
@@ -235,42 +231,41 @@ species ChillPeople skills:[fipa,moving]
 	list<Restaurant> RestaurantList <- nil;
 	
 	// Chill people is looking for a place to go
-	reflex LookingForFun when:targetLocation = nil
+	reflex LookingForFun when: targetLocation = nil
 	{
 		do wander;
 	}
 	
 	// Calculate bar utility
-	reflex CalculateBarUtility when:utility = 0.0
+	reflex CalculateBarUtility when: utility = 0.0
 	{
-		ask Bars closest_to(location){
+		ask Bars closest_to(location) {
 			myself.barUtility <- (myself.pref_lightshow * self.lightshow) + (myself.pref_speakers * self.speakers) + (myself.pref_band * self.band)
 								 + (myself.pref_size * self.size) + (myself.pref_service * self.service);
-			write myself.name + " bar utility is " + myself.barUtility;
+			write myself.name + " closest bar utility is " + myself.barUtility;
 			myself.barLocation <- self.location;
 		}
 	}
 	
-	
 	// Calculate concert utility
-	reflex CalculateConcertUtility when:utility = 0.0
+	reflex CalculateConcertUtility when: utility = 0.0
 	{
-		ask Concerts closest_to(location){
+		ask Concerts closest_to(location) {
 			myself.concertUtility <- (myself.pref_lightshow * self.lightshow) + (myself.pref_speakers * self.speakers)
 									 + (myself.pref_band * self.band) + (myself.pref_size * self.size) + (myself.pref_service * self.service);
-			write myself.name + " concert utility is " + myself.concertUtility;
-			myself.concertLocation <- self.location;	
+			write myself.name + " closest concert utility is " + myself.concertUtility;
+			myself.concertLocation <- self.location;
 		}
 	}
 	
 	// Compare the utility and choose a place to go
-	reflex PickAPlace when:utility = 0.0
+	reflex PickAPlace when: utility = 0.0
 	{
-		if barUtility >= concertUtility{
+		if barUtility >= concertUtility {
 			utility <- barUtility;
-			targetLocation <-barLocation;
+			targetLocation <- barLocation;
 		}
-		else{
+		else {
 			utility <- concertUtility;
 			targetLocation <- concertLocation;
 		}
@@ -278,17 +273,16 @@ species ChillPeople skills:[fipa,moving]
 	}
 	
 	// Go to target location
-	reflex GoToTarget when:targetLocation != nil
+	reflex GoToTarget when: targetLocation != nil
 	{
-		do goto target:targetLocation;
+		do goto target: targetLocation;
 		// getting hungry
-		if (int(time) mod (rnd(30) + 50) = 0) and !GoingToRestaurant
-		{
+		if (int(time) mod (rnd(30) + 50) = 0) and !GoingToRestaurant {
 			hungry <- hungry + 1;
 		}
 	}
 	
-	reflex handle_requests when: !empty(requests) 
+	reflex handle_requests when: !empty(requests)
 	{
 		message m <- (requests at 0);
 		list<string> contents <- m.contents;
@@ -323,17 +317,17 @@ species ChillPeople skills:[fipa,moving]
 			list<int> contents <- a.contents;
 			int noiseDegree <- contents[0];
 			
-			if highestNoiseDegree < noiseDegree{
+			if highestNoiseDegree < noiseDegree {
 				highestNoiseDegree <- noiseDegree;
 			}
 		}
 		
-		if acceptNoiseDegree < highestNoiseDegree{
+		if acceptNoiseDegree < highestNoiseDegree {
 			write name + " can accept noise " + acceptNoiseDegree + " and current noise is " + highestNoiseDegree;
 			write name + ": You guys are too noisy. I'm going to leave.";
 			targetLocation <- concertLocation;
 		}
-		else{
+		else {
 			write name + " can accept noise " + acceptNoiseDegree + " and current noise is " + highestNoiseDegree;
 			write name + ": I like this place";
 			DecideToStay <- true;
@@ -355,11 +349,11 @@ species ChillPeople skills:[fipa,moving]
 	// Restaurant has no seats
 	reflex WaitForSeats when: hungry > 8 and GoingToRestaurant and location distance_to restaurantLocation < 5 and location distance_to restaurantLocation > 0
 	{
-		if RestaurantIsFull{
+		if RestaurantIsFull {
 			targetLocation <- nil;
 			utility <- 0.0;
 		}
-		else{
+		else {
 			targetLocation <- restaurantLocation;
 		}
 	}
@@ -367,7 +361,7 @@ species ChillPeople skills:[fipa,moving]
 	// Finish food and leave restaurant
 	reflex FinishFood when: location = restaurantLocation and GoingToRestaurant
 	{
-		if (int(time) mod (rnd(30) +40) = 0){
+		if (int(time) mod (rnd(30) +40) = 0) {
 			write string(self) + ": I'm full now. I can get some fun again.";
 			do start_conversation (to :: RestaurantList, protocol :: 'fipa-contract-net', performative :: 'inform', contents :: ["Check out"]);
 			hungry <- 0;
@@ -379,18 +373,18 @@ species ChillPeople skills:[fipa,moving]
 	}
 	
 	// Start the conversation with party people who are at the bar
-	reflex MeetPartyPeople when:targetLocation = barLocation and location = barLocation and !DecideToStay
+	reflex MeetPartyPeople when: targetLocation = barLocation and location = barLocation and !DecideToStay
 	{
 		// Create a list of party poeple who is at the bar
 		ask agents of_species PartyPeople
 		{
-			if self.location = myself.barLocation and !(self in myself.PartyPeopleAtBar){
+			if self.location = myself.barLocation and !(self in myself.PartyPeopleAtBar) {
 				myself.PartyPeopleAtBar << self;	
 			}
 		}
 
 		// If there are party people at the bar, ask for their noise degree
-		if PartyPeopleAtBar != []{
+		if PartyPeopleAtBar != [] {
 			do start_conversation (to :: PartyPeopleAtBar, protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['request noise degree']);
 		}	
 	}
@@ -400,7 +394,7 @@ species ChillPeople skills:[fipa,moving]
 	}
 }
 
-species RockFan skills:[fipa,moving] 
+species RockFan skills: [fipa, moving] 
 {
 	// Personal trait
 	int LikeInterestingPeople <- rnd(10);
@@ -427,42 +421,42 @@ species RockFan skills:[fipa,moving]
 	list<Restaurant> RestaurantList <- nil;
 	
 	// Rock Fan is looking for a place to go
-	reflex LookingForFun when:targetLocation = nil
+	reflex LookingForFun when: targetLocation = nil
 	{
 		do wander;
 	}
 	
 	// Calculate bar utility
-	reflex CalculateBarUtility when:utility = 0.0
+	reflex CalculateBarUtility when: utility = 0.0
 	{
-		ask Bars closest_to(location){
+		ask Bars closest_to(location) {
 			myself.barUtility <- (myself.pref_lightshow * self.lightshow) + (myself.pref_speakers * self.speakers) + (myself.pref_band * self.band)
 								 + (myself.pref_size * self.size) + (myself.pref_service * self.service);
-			write myself.name + " bar utility is " + myself.barUtility;
+			write myself.name + " closest bar utility is " + myself.barUtility;
 			myself.barLocation <- self.location;
 		}
 	}
 	
 	
 	// Calculate concert utility
-	reflex CalculateConcertUtility when:utility = 0.0
+	reflex CalculateConcertUtility when: utility = 0.0
 	{
-		ask Concerts closest_to(location){
+		ask Concerts closest_to(location) {
 			myself.concertUtility <- (myself.pref_lightshow * self.lightshow) + (myself.pref_speakers * self.speakers)
 									 + (myself.pref_band * self.band) + (myself.pref_size * self.size) + (myself.pref_service * self.service);
-			write myself.name + " concert utility is " + myself.concertUtility;
-			myself.concertLocation <- self.location;	
+			write myself.name + " closest concert utility is " + myself.concertUtility;
+			myself.concertLocation <- self.location;
 		}
 	}
 	
 	// Compare the utility and choose a place to go
-	reflex PickAPlace when:utility = 0.0
+	reflex PickAPlace when: utility = 0.0
 	{
-		if barUtility >= concertUtility{
+		if barUtility >= concertUtility {
 			utility <- barUtility;
 			targetLocation <-barLocation;
 		}
-		else{
+		else {
 			utility <- concertUtility;
 			targetLocation <- concertLocation;
 		}
@@ -470,9 +464,9 @@ species RockFan skills:[fipa,moving]
 	}
 	
 	// Go to target location
-	reflex GoToTarget when:targetLocation != nil
+	reflex GoToTarget when: targetLocation != nil
 	{
-		do goto target:targetLocation;
+		do goto target: targetLocation;
 		// getting hungry
 		if (int(time) mod (rnd(30) + 40) = 0) and !GoingToRestaurant
 		{
@@ -482,7 +476,7 @@ species RockFan skills:[fipa,moving]
 	
 	// After chill people accept the invitation
 	reflex handle_agrees when: !empty(agrees) {
-		loop a over:agrees{
+		loop a over: agrees {
 			write 'agree message with content ' + string(a.contents);
 			write name + ": Let's go tegether. ^^^";
 			targetLocation <- barLocation;
@@ -491,7 +485,7 @@ species RockFan skills:[fipa,moving]
 	
 	// After chill people refuse the invitation
 	reflex handle_failures when: !empty(failures) {
-		loop f over:failures{
+		loop f over: failures{
 			write 'failure message with content ' + string(f.contents);
 			write name + ': Have a good night. ^^^';
 			sentInvitation <- false;
@@ -513,11 +507,11 @@ species RockFan skills:[fipa,moving]
 	// Restaurant has no seats
 	reflex WaitForSeats when: hungry > 8 and GoingToRestaurant and location distance_to restaurantLocation < 5 and location distance_to restaurantLocation > 0
 	{
-		if RestaurantIsFull{
+		if RestaurantIsFull {
 			targetLocation <- nil;
 			utility <- 0.0;
 		}
-		else{
+		else {
 			targetLocation <- restaurantLocation;
 		}
 	}
@@ -525,7 +519,7 @@ species RockFan skills:[fipa,moving]
 	// Finish food and leave restaurant
 	reflex FinishFood when: location = restaurantLocation and GoingToRestaurant
 	{
-		if (int(time) mod (rnd(30) + 40) = 0){
+		if (int(time) mod (rnd(30) + 40) = 0) {
 			write string(self) + ": I'm full now. I can get some fun again.";
 			do start_conversation (to :: RestaurantList, protocol :: 'fipa-contract-net', performative :: 'inform', contents :: ["Check out"]);
 			hungry <- 0;
@@ -535,7 +529,7 @@ species RockFan skills:[fipa,moving]
 		}
 	}
 	
-	reflex MeetChillPeople when:targetLocation = concertLocation and location = concertLocation and !sentInvitation
+	reflex MeetChillPeople when: targetLocation = concertLocation and location = concertLocation and !sentInvitation
 	{
 		// Create a list of interesting chill poeple in the concert
 		ask agents of_species ChillPeople
@@ -546,11 +540,10 @@ species RockFan skills:[fipa,moving]
 			}
 		}
 		
-		
 		// If there are interesting chill people in the concert, invite them to the bar.
 		if InterestingChillPeopleAtConcert != [] {
-			loop c over:InterestingChillPeopleAtConcert{
-				if !(c in invited){
+			loop c over: InterestingChillPeopleAtConcert {
+				if !(c in invited) {
 					write string(InterestingChillPeopleAtConcert) + " are in the concert, and " + c + " will be invited";
 					do start_conversation (to :: [c], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['Invite to the bar']);
 					invited << c;
@@ -568,7 +561,7 @@ species RockFan skills:[fipa,moving]
 
 species Bars 
 {
-	float band <- rnd(9)/10;
+	float band <- rnd(9) / 10;
 	float lightshow <- rnd(9) / 10;
 	float speakers <- rnd(9) / 10;
 	float size <- rnd(9) / 10; 
@@ -581,7 +574,7 @@ species Bars
 
 species Concerts 
 {
-	float band <- rnd(9)/10;
+	float band <- rnd(9) / 10;
 	float lightshow <- rnd(9) / 10;
 	float speakers <- rnd(9) / 10;
 	float size <- rnd(9) / 10; 
@@ -592,23 +585,23 @@ species Concerts
 	}
 }
 
-species Restaurant skills:[fipa]
+species Restaurant skills: [fipa]
 {
 	list<agent> customers <- [];
 	
 	// Whether the restaurant is full or not
 	reflex CountCustomers
 	{
-		if length(customers) <= 10{
+		if length(customers) <= 10 {
 			ask agents at_distance 1 {
-				if !(self in myself.customers) and length(myself.customers) <= 10{
+				if !(self in myself.customers) and length(myself.customers) <= 10 {
 					myself.customers << self;
 				}
 			}
 //			write "*********************Customer list is updated" + customers;
 			RestaurantIsFull <- false;
 		}
-		else{
+		else {
 			RestaurantIsFull <- true;
 		}
 	}
@@ -619,7 +612,7 @@ species Restaurant skills:[fipa]
 		list<string> contents <- informFromCustomer.contents;
 		write string(informFromCustomer.sender) + " in the list " + customers + " is leaving.";
 		remove informFromCustomer.sender from: customers;
-		write " The updated list is " + customers;
+		write name + " updated list is " + customers;
 	}
 	
 	aspect base {
@@ -627,7 +620,7 @@ species Restaurant skills:[fipa]
 	}
 }
 
-experiment FinalProject type:gui {
+experiment FinalProject type: gui {
 	output {
 		display myDisplay {
 			// Display the species with the created aspects
