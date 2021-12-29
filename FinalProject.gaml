@@ -17,6 +17,7 @@ global {
 	int numberOfRestaurant <- 1;
 	
 	bool RestaurantIsFull <- false;
+	float dummyValue <- 0.5;
 	
 	init {
 		create PartyPerson number: numberOfPartyPeople;
@@ -413,6 +414,12 @@ species Restaurant skills: [fipa]
 
 experiment FinalProject type: gui {
 	output {
+		display dummyChart {
+		   chart "dummy chart" type: series {
+		      data "dummyValue" value: dummyValue color: #red;
+		   }
+		}
+
 		display myDisplay {
 			// Display the species with the created aspects
 			species Bars aspect:base;
