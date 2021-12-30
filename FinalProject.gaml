@@ -18,7 +18,6 @@ global {
 	int numberOfRestaurant <- 1;
 	int numberOfMerchShops <- 1;
 	
-	bool RestaurantIsFull <- false;
 	bool PartyBroken <- false;
 	
 	list<point> listBarsLocation <- [];
@@ -149,41 +148,14 @@ species Concerts
 	}
 }
 
-species Restaurant skills: [fipa]
+species Restaurant
 {
-	list<agent> customers <- [];
-	
-	// Whether the restaurant is full or not
-	reflex CountCustomers
-	{
-		if length(customers) <= 10 {
-			ask agents at_distance 1 {
-				if !(self in myself.customers) and length(myself.customers) <= 10 {
-					myself.customers << self;
-				}
-			}
-			RestaurantIsFull <- false;
-		}
-		else {
-			RestaurantIsFull <- true;
-		}
-	}
-	
-	// Customers finish the food
-	reflex handle_informs when: (!empty(informs)) {
-		message informFromCustomer <- (informs at 0);
-		list<string> contents <- informFromCustomer.contents;
-		write string(informFromCustomer.sender) + " in the list " + customers + " is leaving.";
-		remove informFromCustomer.sender from: customers;
-		write name + " updated list is " + customers;
-	}
-	
 	aspect base {
 		draw hexagon(6) color: #orange;
 	}
 }
 
-species MerchShop skills: [fipa]
+species MerchShop
 {	
 	aspect base {
 		draw hexagon(6) color: #violet;
@@ -279,18 +251,6 @@ species Person skills: [fipa, moving]
 		GoingToRestaurant <- true;
 	}
 	
-	// Restaurant has no seats
-	reflex WaitForSeats when: hungry > 8 and GoingToRestaurant and location distance_to restaurantLocation < 5 and location distance_to restaurantLocation > 0
-	{
-		if RestaurantIsFull {
-			targetLocation <- nil;
-			utility <- 0.0;
-		}
-		else {
-			targetLocation <- restaurantLocation;
-		}
-	}
-	
 	// Leave restaurant
 	reflex FinishFood when: location = restaurantLocation and GoingToRestaurant
 	{
@@ -303,7 +263,7 @@ species Person skills: [fipa, moving]
 			targetLocation <- nil;
 		}
 	}
-	
+
 	reflex handle_informs when: !empty(informs) {
 		message inform <- (informs at 0);
 		list<string> contents <- inform.contents;
@@ -576,7 +536,7 @@ species PartyBreakerPerson parent: Person
 	
 	bool wantToBreakParty <- false;
 	
-	reflex BreakTheParty when: hungry > 6 and location in listConcertsLocation and !PartyBroken and avgSocialInteractionPartyBreakerPerson > 0
+	reflex BreakTheParty when: hungry > 6 and location in listConcertsLocation and !PartyBroken
 	{
 		if trait_misbehaving >= 9 {
 			wantToBreakParty <- true;
