@@ -5,15 +5,14 @@
 * Tags: 
 */
 
-
 model FinalProject
 
 global {
-	int numberOfPartyPeople <- 40;
-	int numberOfChillPeople <- 40;
-	int numberOfRockFans <- 40;
-	int numberOfPartyBreakers <- 40;
-	int numberOfMerchEntusiasts <- 40;
+	int numberOfPartyPeople <- 20;
+	int numberOfChillPeople <- 20;
+	int numberOfRockFans <- 20;
+	int numberOfPartyBreakers <- 20;
+	int numberOfMerchEntusiasts <- 20;
 	int numberOfBars <- 1;
 	int numberOfConcerts <- 1;
 	int numberOfRestaurant <- 1;
@@ -32,11 +31,11 @@ global {
 	list<PartyBreakerPerson> listPartyBreakerPerson <- [];
 	list<MerchEntusiastPerson> listMerchEntusiastPerson <- [];
 	
-	int avgHappinessPartyPerson <- 0;
-	int avgHappinessChillPerson <- 0;
-	int avgHappinessRockPerson <- 0;
-	int avgHappinessPartyBreakerPerson <- 0;
-	int avgHappinessMerchEntusiastPerson <- 0;
+	int avgSocialInteractionPartyPerson <- 0;
+	int avgSocialInteractionChillPerson <- 0;
+	int avgSocialInteractionRockPerson <- 0;
+	int avgSocialInteractionPartyBreakerPerson <- 0;
+	int avgSocialInteractionMerchEntusiastPerson <- 0;
 	
 	init {
 		create PartyPerson number: numberOfPartyPeople {
@@ -67,39 +66,39 @@ global {
 	}
 	
 	reflex calculateHappiness when: int(time) mod 10 = 0  {
-		avgHappinessPartyPerson <- 0;
-		avgHappinessChillPerson <- 0;
-		avgHappinessRockPerson <- 0;
-		avgHappinessPartyBreakerPerson <- 0;
-		avgHappinessMerchEntusiastPerson <- 0;
+		avgSocialInteractionPartyPerson <- 0;
+		avgSocialInteractionChillPerson <- 0;
+		avgSocialInteractionRockPerson <- 0;
+		avgSocialInteractionPartyBreakerPerson <- 0;
+		avgSocialInteractionMerchEntusiastPerson <- 0;
 		
 		loop p over: listPartyPerson {
-			avgHappinessPartyPerson <- avgHappinessPartyPerson + p.happiness;
+			avgSocialInteractionPartyPerson <- avgSocialInteractionPartyPerson + p.social_interaction;
 		}
 		loop p over: listChillPerson {
-			avgHappinessChillPerson <- avgHappinessChillPerson + p.happiness;
+			avgSocialInteractionChillPerson <- avgSocialInteractionChillPerson + p.social_interaction;
 		}
 		loop p over: listRockPerson {
-			avgHappinessRockPerson <- avgHappinessRockPerson + p.happiness;
+			avgSocialInteractionRockPerson <- avgSocialInteractionRockPerson + p.social_interaction;
 		}
 		loop p over: listPartyBreakerPerson {
-			avgHappinessPartyBreakerPerson <- avgHappinessPartyBreakerPerson + p.happiness;
+			avgSocialInteractionPartyBreakerPerson <- avgSocialInteractionPartyBreakerPerson + p.social_interaction;
 		}
 		loop p over: listMerchEntusiastPerson {
-			avgHappinessMerchEntusiastPerson <- avgHappinessMerchEntusiastPerson + p.happiness;
+			avgSocialInteractionMerchEntusiastPerson <- avgSocialInteractionMerchEntusiastPerson + p.social_interaction;
 		}
 		
-		avgHappinessPartyPerson <- int(avgHappinessPartyPerson / length(listPartyPerson));
-		avgHappinessChillPerson <- int(avgHappinessChillPerson / length(listChillPerson));
-		avgHappinessRockPerson <- int(avgHappinessRockPerson / length(listRockPerson));
-		avgHappinessPartyBreakerPerson <- int(avgHappinessPartyBreakerPerson / length(listPartyBreakerPerson));
-		avgHappinessMerchEntusiastPerson <- int(avgHappinessMerchEntusiastPerson / length(listMerchEntusiastPerson));
+		avgSocialInteractionPartyPerson <- int(avgSocialInteractionPartyPerson / length(listPartyPerson));
+		avgSocialInteractionChillPerson <- int(avgSocialInteractionChillPerson / length(listChillPerson));
+		avgSocialInteractionRockPerson <- int(avgSocialInteractionRockPerson / length(listRockPerson));
+		avgSocialInteractionPartyBreakerPerson <- int(avgSocialInteractionPartyBreakerPerson / length(listPartyBreakerPerson));
+		avgSocialInteractionMerchEntusiastPerson <- int(avgSocialInteractionMerchEntusiastPerson / length(listMerchEntusiastPerson));
 		
-		write 'AVG HAPPINESS (PARTY) ' + avgHappinessPartyPerson;
-		write 'AVG HAPPINESS (CHILL) ' + avgHappinessChillPerson;
-		write 'AVG HAPPINESS (ROCK) ' + avgHappinessRockPerson;
-		write 'AVG HAPPINESS (PARTYBREAKER) ' + avgHappinessPartyBreakerPerson;
-		write 'AVG HAPPINESS (MERCH) ' + avgHappinessMerchEntusiastPerson;
+//		write 'AVG HAPPINESS (PARTY) ' + avgSocialInteractionPartyPerson;
+//		write 'AVG HAPPINESS (CHILL) ' + avgSocialInteractionChillPerson;
+//		write 'AVG HAPPINESS (ROCK) ' + avgSocialInteractionRockPerson;
+//		write 'AVG HAPPINESS (PARTYBREAKER) ' + avgSocialInteractionPartyBreakerPerson;
+//		write 'AVG HAPPINESS (MERCH) ' + avgSocialInteractionMerchEntusiastPerson;
 	}
 	
 	reflex partyContinues when: int(time) mod 180 = 0 and PartyBroken {
@@ -202,7 +201,7 @@ species Person skills: [fipa, moving]
 	
 	int hungry <- rnd(10);
 	bool mood <- flip(0.6);
-	int happiness <- rnd(100);
+	int social_interaction <- 1;
 	bool GoingToRestaurant <- false;
 	
 	point targetLocation <- nil;
@@ -221,15 +220,6 @@ species Person skills: [fipa, moving]
 	{
 		do wander;
 	}
-	
-//	reflex updatePreferences when: utility = 0.0 {
-//		write name + " PREFERENCE CHANGE";
-//		self.pref_lightshow <- rnd(9) / 10;
-//		self.pref_speakers <- rnd(9) / 10;
-//		self.pref_band <- rnd(9) / 10;
-//		self.pref_size <- rnd(9) / 10;
-//		self.pref_service <- rnd(9) / 10;
-//	}
 	
 	// Calculate bar utility
 	reflex CalculateBarUtility when: utility = 0.0
@@ -295,11 +285,9 @@ species Person skills: [fipa, moving]
 		if RestaurantIsFull {
 			targetLocation <- nil;
 			utility <- 0.0;
-			happiness <- happiness - rnd(2);
 		}
 		else {
 			targetLocation <- restaurantLocation;
-			happiness <- happiness + rnd(1);
 		}
 	}
 	
@@ -313,7 +301,6 @@ species Person skills: [fipa, moving]
 			GoingToRestaurant <- false;
 			utility <- 0.0;
 			targetLocation <- nil;
-			happiness <- happiness + rnd(3);
 		}
 	}
 	
@@ -324,8 +311,7 @@ species Person skills: [fipa, moving]
 		if contents[0] = 'Breaking party up' {
 			targetLocation <- nil;
 			partyBrokenAtTime <- time;
-			happiness <- happiness - 10;
-//			utility <- 0.0;
+			social_interaction <- social_interaction + 1;
 		}
 	}
 	
@@ -339,37 +325,34 @@ species Person skills: [fipa, moving]
 		if content = 'buy you a drink' {
 			if mood {
 				do agree with: (message: m, contents: [string(name) + ': Thank you for the drink.']);
-				happiness <- happiness + 3;
 			}
 			else {
 				do failure (message: m, contents: [string(name) + ": Sorry, I don't want another drink."]);
-				happiness <- happiness - 1;
 			}
+			social_interaction <- social_interaction + 1;
 		}
 		// Accept or refuse the invitation
 		else if content = 'Invite to the bar' {
 			if mood {
 				do agree with: (message: m, contents: [string(name) + ': I would like to.']);
 				targetLocation <- barLocation;
-				happiness <- happiness + 3;
 			}
 			else {
 				do failure (message: m, contents: [string(name) + ": Thank you for your invitation, but I would like to stay here."]);
-				happiness <- happiness - 1;
 			}
+			social_interaction <- social_interaction + 1;
 		}
 		// Accept or refuse the merch offer
 		else if content = 'offer buy merch' {
 			if mood {
 				do agree with: (message: m, contents: [string(name) + ': Thanks.']);
 				utility <- 0.0;
-				happiness <- happiness + 3;
 			}
 			else {
 				do failure (message: m, contents: [string(name) + ": Thank you for the offer, but I don't want any."]);
 				utility <- 0.0;
-				happiness <- happiness - 1;
 			}
+			social_interaction <- social_interaction + 1;
 		}
 	}
 	
@@ -410,8 +393,8 @@ species PartyPerson parent: Person
 			write 'agree message with content ' + string(a.contents);
 			write name + ': Glad to hear that. $$$';
 			BoughtPeopleDrink <- true;
-			happiness <- happiness + 1;
 		}
+		social_interaction <- social_interaction + 1;
 	}
 	
 	// After people refuse the drink
@@ -421,6 +404,7 @@ species PartyPerson parent: Person
 			write name + ': Enjoy your night. $$$';
 			BoughtPeopleDrink <- false;
 		}
+		social_interaction <- social_interaction + 1;
 	}
 	
 	reflex interactWithOthers when: targetLocation in listBarsLocation and location in listBarsLocation {
@@ -480,19 +464,17 @@ species ChillPerson parent: Person
 			if trait_outgoing >= 5 and trait_quiet >= 5 {
 				write name + ": I like this place";
 				DecideToStay <- true;
-				happiness <- happiness + 5;
 			}
 			else {
 				write name + ": I am tired of this place. I'm going to leave.";
 				targetLocation <- concertLocation;
-				happiness <- happiness - 2;
 			}
 		}
 		else {
 			write name + ": I like this place";
 			DecideToStay <- true;
-			happiness <- happiness + 5;
 		}
+		social_interaction <- social_interaction + 1;
 	}
 	
 	// Start the conversation with party people who are at the bar
@@ -505,7 +487,7 @@ species ChillPerson parent: Person
 			break;
 		}
 		if closest_bar != nil {
-			do start_conversation (to :: [closest_bar], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['request number of people']);	
+			do start_conversation (to :: [closest_bar], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['request number of people']);
 		}
 	}
 		
@@ -539,8 +521,8 @@ species RockPerson parent: Person
 			write 'agree message with content ' + string(a.contents);
 			write name + ": Let's go together. ^^^";
 			targetLocation <- barLocation;
-			happiness <- happiness + 2;
 		}
+		social_interaction <- social_interaction + 1;
 	}
 	
 	// After chill people refuse the invitation
@@ -549,8 +531,8 @@ species RockPerson parent: Person
 			write 'failure message with content ' + string(f.contents);
 			write name + ': Have a good night. ^^^';
 			sentInvitation <- false;
-			happiness <- happiness - 1;
 		}
+		social_interaction <- social_interaction + 1;
 	}
 
 	reflex invitePeopleToTheBar when: targetLocation in listConcertsLocation and location in listConcertsLocation and !sentInvitation
@@ -571,6 +553,7 @@ species RockPerson parent: Person
 				if !(c in invited) {
 					write string(length(interestingPeopleAtConcert)) + " are in the concert, and " + c + " will be invited to the bar";
 					do start_conversation (to :: [c], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['Invite to the bar']);
+					social_interaction <- social_interaction + 1;
 					invited << c;
 					sentInvitation <- true;
 					break;
@@ -593,7 +576,7 @@ species PartyBreakerPerson parent: Person
 	
 	bool wantToBreakParty <- false;
 	
-	reflex BreakTheParty when: hungry > 6 and location in listConcertsLocation and !PartyBroken and avgHappinessPartyBreakerPerson > 0
+	reflex BreakTheParty when: hungry > 6 and location in listConcertsLocation and !PartyBroken and avgSocialInteractionPartyBreakerPerson > 0
 	{
 		if trait_misbehaving >= 9 {
 			wantToBreakParty <- true;
@@ -615,9 +598,9 @@ species PartyBreakerPerson parent: Person
 			if !empty(people) {
 				write name + " is breaking up the concert";
 				do start_conversation (to :: people, protocol :: 'fipa-contract-net', performative :: 'inform', contents :: ['Breaking party up']);
+				social_interaction <- social_interaction + 1;
 				PartyBroken <- true;
 				wantToBreakParty <- false;
-				happiness <- happiness + 2;
 			}
 		}
 	}
@@ -659,6 +642,7 @@ species MerchEntusiastPerson parent: Person
 			ask MerchEntusiastPerson at_distance(1) {
 				write self.name + " is in the shop, and will be offered merch";
 				do start_conversation (to :: [self], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['offer buy merch']);
+				social_interaction <- social_interaction + 1;
 				break;
 			}
 		}
@@ -671,8 +655,8 @@ species MerchEntusiastPerson parent: Person
 			write name + ": It fits you well.";
 			utility <- 0.0;
 			atShop <- false;
-			happiness <- happiness + 1;
 		}
+		social_interaction <- social_interaction + 1;
 	}
 	
 	// After people refuse the offer
@@ -683,6 +667,7 @@ species MerchEntusiastPerson parent: Person
 			utility <- 0.0;
 			atShop <- false;
 		}
+		social_interaction <- social_interaction + 1;
 	}
 	
 	aspect base {
@@ -692,13 +677,13 @@ species MerchEntusiastPerson parent: Person
 
 experiment FinalProject type: gui {
 	output {
-		display dummyChart {
-		   chart "dummy chart" type: series {
-		      data "avgHappinessPartyPerson" value: avgHappinessPartyPerson color: #red;
-		      data "avgHappinessChillPerson" value: avgHappinessChillPerson color: #green;
-		      data "avgHappinessRockPerson" value: avgHappinessRockPerson color: #blue;
-		      data "avgHappinessPartyBreakerPerson" value: avgHappinessPartyBreakerPerson color: #orange;
-		      data "avgHappinessMerchEntusiastPerson" value: avgHappinessMerchEntusiastPerson color: #violet;
+		display chart refresh: every(100#cycle) {
+		   chart "Average Social interaction" type: series {
+		      data "PartyPerson" value: avgSocialInteractionPartyPerson color: #red;
+		      data "ChillPerson" value: avgSocialInteractionChillPerson color: #green;
+		      data "RockPerson" value: avgSocialInteractionRockPerson color: #blue;
+		      data "PartyBreakerPerson" value: avgSocialInteractionPartyBreakerPerson color: #orange;
+		      data "MerchEntusiastPerson" value: avgSocialInteractionMerchEntusiastPerson color: #violet;
 		   }
 		}
 
@@ -716,8 +701,3 @@ experiment FinalProject type: gui {
 		}
 	}
 }
-
-// PartyPeople -> buy drinks, 
-// ChillPeople -> leave bar when too noisy
-// RockPeople -> invite ChillPeople to the bar
-// PartyBreakerPeople -> 
