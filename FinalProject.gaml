@@ -618,8 +618,9 @@ species MerchEntusiastPerson parent: Person
 	int trait_friendly <- 8;
 	
 	bool atShop <- false;
+	bool carryingMerch <- false;
 	
-	reflex goToMerchShop when: int(time) mod (rnd(120) + 30) = 0 and flip(0.4) {
+	reflex goToMerchShop when: int(time) mod (rnd(120) + 30) = 0 and flip(0.4) and !carryingMerch {
 		ask MerchShop closest_to(location) {
 			myself.targetLocation <- self.location;
 			break;
@@ -639,12 +640,53 @@ species MerchEntusiastPerson parent: Person
 		}
 		
 		if offer {
+			bool bought <- false;
 			ask MerchEntusiastPerson at_distance(1) {
 				write self.name + " is in the shop, and will be offered merch";
 				do start_conversation (to :: [self], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['offer buy merch']);
 				social_interaction <- social_interaction + 1;
+				bought <- true;
 				break;
 			}
+			
+			if !bought {
+				bought <- true;
+				carryingMerch <- true;
+				targetLocation <- concertLocation;
+				atShop <- false;
+			}
+		}
+	}
+	
+	reflex giftMerch when: location = concertLocation and carryingMerch {
+		agent a <- nil;
+		ask PartyPerson at_distance(1) {
+			a <- self;
+			break;
+		}
+		if a != nil {
+			ask ChillPerson at_distance(1) {
+				a <- self;
+				break;
+			}
+		}
+		if a != nil {
+			ask RockPerson at_distance(1) {
+				a <- self;
+				break;
+			}
+		}
+		if a != nil {
+			ask PartyBreakerPerson at_distance(1) {
+				a <- self;
+				break;
+			}
+		}
+		if a != nil {
+			write a.name + " is at the concert, and will be gifted merch";
+			do start_conversation (to :: [a], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['offer buy merch']);
+			social_interaction <- social_interaction + 1;
+			carryingMerch <- false;
 		}
 	}
 	
@@ -677,7 +719,7 @@ species MerchEntusiastPerson parent: Person
 
 experiment FinalProject type: gui {
 	output {
-		display chart refresh: every(100#cycle) {
+		display Chart refresh: every(100#cycle) {
 		   chart "Average Social interaction" type: series {
 		      data "PartyPerson" value: avgSocialInteractionPartyPerson color: #red;
 		      data "ChillPerson" value: avgSocialInteractionChillPerson color: #green;
@@ -687,7 +729,7 @@ experiment FinalProject type: gui {
 		   }
 		}
 
-		display myDisplay {
+		display Display {
 			// Display the species with the created aspects
 			species Bars aspect:base;
 			species Concerts aspect:base;
