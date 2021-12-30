@@ -9,11 +9,11 @@
 model FinalProject
 
 global {
-	int numberOfPartyPeople <- 10;
-	int numberOfChillPeople <- 10;
-	int numberOfRockFans <- 10;
-	int numberOfPartyBreakers <- 10;
-	int numberOfMerchEntusiasts <- 5;
+	int numberOfPartyPeople <- 40;
+	int numberOfChillPeople <- 40;
+	int numberOfRockFans <- 40;
+	int numberOfPartyBreakers <- 40;
+	int numberOfMerchEntusiasts <- 40;
 	int numberOfBars <- 1;
 	int numberOfConcerts <- 1;
 	int numberOfRestaurant <- 1;
@@ -107,6 +107,90 @@ global {
 	}
 }
 
+
+species Bars skills: [fipa]
+{
+	float band <- 0.1;
+	float lightshow <- 0.2;
+	float speakers <- 0.3;
+	float size <- 0.5; 
+	float service <- 0.4;
+	
+	reflex handle_requests when: !empty(requests)
+	{
+		message m <- (requests at 0);
+		list<string> contents <- m.contents;
+		string content <- contents[0];
+		if content = 'request number of people' {
+			list<Person> guests <- [];
+			ask agents of_generic_species Person at_distance 1 {
+				guests << self;
+			}
+			if !empty(guests) {
+				do agree with: (message: m, contents: [length(guests)]);
+			}
+		}
+	}
+	
+	aspect base {
+		draw square(6) color: #black;
+	}
+}
+
+species Concerts 
+{
+	float band <- 0.7;
+	float lightshow <- 0.5;
+	float speakers <- 0.4;
+	float size <- 0.1; 
+	float service <- 0.3;
+	
+	aspect base {
+		draw triangle(6) color: #blue;
+	}
+}
+
+species Restaurant skills: [fipa]
+{
+	list<agent> customers <- [];
+	
+	// Whether the restaurant is full or not
+	reflex CountCustomers
+	{
+		if length(customers) <= 10 {
+			ask agents at_distance 1 {
+				if !(self in myself.customers) and length(myself.customers) <= 10 {
+					myself.customers << self;
+				}
+			}
+			RestaurantIsFull <- false;
+		}
+		else {
+			RestaurantIsFull <- true;
+		}
+	}
+	
+	// Customers finish the food
+	reflex handle_informs when: (!empty(informs)) {
+		message informFromCustomer <- (informs at 0);
+		list<string> contents <- informFromCustomer.contents;
+		write string(informFromCustomer.sender) + " in the list " + customers + " is leaving.";
+		remove informFromCustomer.sender from: customers;
+		write name + " updated list is " + customers;
+	}
+	
+	aspect base {
+		draw hexagon(6) color: #orange;
+	}
+}
+
+species MerchShop skills: [fipa]
+{	
+	aspect base {
+		draw hexagon(6) color: #violet;
+	}
+}
+
 species Person skills: [fipa, moving]
 {
 	// Shop attributes preference
@@ -115,10 +199,6 @@ species Person skills: [fipa, moving]
 	float pref_band <- rnd(9) / 10;
 	float pref_size <- rnd(9) / 10;
 	float pref_service <- rnd(9) / 10;
-	
-	// Personal traits
-	int trait_outgoing <- rnd(10);
-	int trait_social <- rnd(10);
 	
 	int hungry <- rnd(10);
 	bool mood <- flip(0.6);
@@ -307,9 +387,9 @@ species PartyPerson parent: Person
 	// buy drinks
 	
 	// Personal traits
-	// outgoing
-	// social
-	int trait_generous <- rnd(10);
+	int trait_outgoing <- 10;
+	int trait_social <- 10;
+	int trait_generous <- 6;
 	
 	bool BoughtPeopleDrink <- false;
 	
@@ -375,9 +455,9 @@ species ChillPerson parent: Person
 	// leave bar when not social and noisy
 	
 	// Personal trait
-	// outgoing
-	// social
-	int trait_quiet <- rnd(10);
+	int trait_outgoing <- 6;
+	int trait_social <- 6;
+	int trait_quiet <- 5;
 
 	bool DecideToStay <- false;
 
@@ -437,9 +517,9 @@ species ChillPerson parent: Person
 species RockPerson parent: Person
 {
 	// Personal trait
-	// outgoing
-	// social
-	int trait_lazy <- rnd(10);
+	int trait_outgoing <- 8;
+	int trait_social <- 8;
+	int trait_lazy <- 3;
 	
 	bool sentInvitation <- false;
 	list<Person> invited <- [];
@@ -477,7 +557,7 @@ species RockPerson parent: Person
 	{
 		// Create a list of interesting people in the concert
 		list<Person> interestingPeopleAtConcert <- [];
-		ask agents of_generic_species Person
+		ask agents of_species MerchEntusiastPerson
 		{
 			if self.location = myself.concertLocation and !(self in interestingPeopleAtConcert) and (self.trait_outgoing + self.trait_social) >= 8
 			{
@@ -507,9 +587,9 @@ species RockPerson parent: Person
 species PartyBreakerPerson parent: Person
 {
 	// Personal trait
-	// outgoing
-	// social
-	int trait_misbehaving <- rnd(10);
+	int trait_outgoing <- 6;
+	int trait_social <- 4;
+	int trait_misbehaving <- 9;
 	
 	bool wantToBreakParty <- false;
 	
@@ -550,9 +630,9 @@ species PartyBreakerPerson parent: Person
 species MerchEntusiastPerson parent: Person
 {
 	// Personal trait
-	// outgoing
-	// social
-	int trait_friendly <- rnd(10);
+	int trait_outgoing <- 5;
+	int trait_social <- 5;
+	int trait_friendly <- 8;
 	
 	bool atShop <- false;
 	
@@ -607,89 +687,6 @@ species MerchEntusiastPerson parent: Person
 	
 	aspect base {
 		draw circle(1) color: #grey;
-	}
-}
-
-species Bars skills: [fipa]
-{
-	float band <- rnd(9) / 10;
-	float lightshow <- rnd(9) / 10;
-	float speakers <- rnd(9) / 10;
-	float size <- rnd(9) / 10; 
-	float service <- rnd(9) / 10;
-	
-	reflex handle_requests when: !empty(requests)
-	{
-		message m <- (requests at 0);
-		list<string> contents <- m.contents;
-		string content <- contents[0];
-		if content = 'request number of people' {
-			list<Person> guests <- [];
-			ask agents of_generic_species Person at_distance 1 {
-				guests << self;
-			}
-			if !empty(guests) {
-				do agree with: (message: m, contents: [length(guests)]);
-			}
-		}
-	}
-	
-	aspect base {
-		draw square(6) color: #black;
-	}
-}
-
-species Concerts 
-{
-	float band <- rnd(9) / 10;
-	float lightshow <- rnd(9) / 10;
-	float speakers <- rnd(9) / 10;
-	float size <- rnd(9) / 10; 
-	float service <- rnd(9) / 10;
-	
-	aspect base {
-		draw triangle(6) color: #blue;
-	}
-}
-
-species Restaurant skills: [fipa]
-{
-	list<agent> customers <- [];
-	
-	// Whether the restaurant is full or not
-	reflex CountCustomers
-	{
-		if length(customers) <= 10 {
-			ask agents at_distance 1 {
-				if !(self in myself.customers) and length(myself.customers) <= 10 {
-					myself.customers << self;
-				}
-			}
-			RestaurantIsFull <- false;
-		}
-		else {
-			RestaurantIsFull <- true;
-		}
-	}
-	
-	// Customers finish the food
-	reflex handle_informs when: (!empty(informs)) {
-		message informFromCustomer <- (informs at 0);
-		list<string> contents <- informFromCustomer.contents;
-		write string(informFromCustomer.sender) + " in the list " + customers + " is leaving.";
-		remove informFromCustomer.sender from: customers;
-		write name + " updated list is " + customers;
-	}
-	
-	aspect base {
-		draw hexagon(6) color: #orange;
-	}
-}
-
-species MerchShop skills: [fipa]
-{	
-	aspect base {
-		draw hexagon(6) color: #violet;
 	}
 }
 
