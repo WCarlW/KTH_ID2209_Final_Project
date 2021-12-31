@@ -404,15 +404,6 @@ species ChillPerson parent: Person
 	int trait_quiet <- 5;
 
 	bool DecideToStay <- false;
-
-	bool conversationStarted <- false;
-	
-	
-	reflex running {
-		if int(time) mod (rnd(30) + 70) = 0 {
-			DecideToStay <- false;
-		}
-	}
 	
 	// Decide whether to leave the bar or not
 	reflex handle_agrees when: !empty(agrees) {
@@ -428,6 +419,7 @@ species ChillPerson parent: Person
 			else {
 				write name + ": I am tired of this place. I'm going to leave.";
 				targetLocation <- concertLocation;
+				DecideToStay <- false;
 			}
 		}
 		else {
