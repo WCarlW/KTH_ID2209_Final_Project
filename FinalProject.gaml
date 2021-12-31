@@ -12,7 +12,7 @@ global {
 	int numberOfChillPeople <- 20;
 	int numberOfRockFans <- 20;
 	int numberOfPartyBreakers <- 20;
-	int numberOfMerchEntusiasts <- 20;
+	int numberOfMerchEnthusiasts <- 20;
 	int numberOfBars <- 1;
 	int numberOfConcerts <- 1;
 	int numberOfRestaurant <- 1;
@@ -28,13 +28,13 @@ global {
 	list<ChillPerson> listChillPerson <- [];
 	list<RockPerson> listRockPerson <- [];
 	list<PartyBreakerPerson> listPartyBreakerPerson <- [];
-	list<MerchEntusiastPerson> listMerchEntusiastPerson <- [];
+	list<MerchEnthusiastPerson> listMerchEnthusiastPerson <- [];
 	
 	int avgSocialInteractionPartyPerson <- 0;
 	int avgSocialInteractionChillPerson <- 0;
 	int avgSocialInteractionRockPerson <- 0;
 	int avgSocialInteractionPartyBreakerPerson <- 0;
-	int avgSocialInteractionMerchEntusiastPerson <- 0;
+	int avgSocialInteractionMerchEnthusiastPerson <- 0;
 	
 	init {
 		create PartyPerson number: numberOfPartyPeople {
@@ -49,8 +49,8 @@ global {
 		create PartyBreakerPerson number: numberOfPartyBreakers {
 			listPartyBreakerPerson << self;
 		}
-		create MerchEntusiastPerson number: numberOfMerchEntusiasts {
-			listMerchEntusiastPerson << self;
+		create MerchEnthusiastPerson number: numberOfMerchEnthusiasts {
+			listMerchEnthusiastPerson << self;
 		}
 		create Bars number: numberOfBars {
 			listBarsLocation << self.location;	
@@ -69,7 +69,7 @@ global {
 		avgSocialInteractionChillPerson <- 0;
 		avgSocialInteractionRockPerson <- 0;
 		avgSocialInteractionPartyBreakerPerson <- 0;
-		avgSocialInteractionMerchEntusiastPerson <- 0;
+		avgSocialInteractionMerchEnthusiastPerson <- 0;
 		
 		loop p over: listPartyPerson {
 			avgSocialInteractionPartyPerson <- avgSocialInteractionPartyPerson + p.social_interaction;
@@ -83,21 +83,21 @@ global {
 		loop p over: listPartyBreakerPerson {
 			avgSocialInteractionPartyBreakerPerson <- avgSocialInteractionPartyBreakerPerson + p.social_interaction;
 		}
-		loop p over: listMerchEntusiastPerson {
-			avgSocialInteractionMerchEntusiastPerson <- avgSocialInteractionMerchEntusiastPerson + p.social_interaction;
+		loop p over: listMerchEnthusiastPerson {
+			avgSocialInteractionMerchEnthusiastPerson <- avgSocialInteractionMerchEnthusiastPerson + p.social_interaction;
 		}
 		
 		avgSocialInteractionPartyPerson <- int(avgSocialInteractionPartyPerson / length(listPartyPerson));
 		avgSocialInteractionChillPerson <- int(avgSocialInteractionChillPerson / length(listChillPerson));
 		avgSocialInteractionRockPerson <- int(avgSocialInteractionRockPerson / length(listRockPerson));
 		avgSocialInteractionPartyBreakerPerson <- int(avgSocialInteractionPartyBreakerPerson / length(listPartyBreakerPerson));
-		avgSocialInteractionMerchEntusiastPerson <- int(avgSocialInteractionMerchEntusiastPerson / length(listMerchEntusiastPerson));
+		avgSocialInteractionMerchEnthusiastPerson <- int(avgSocialInteractionMerchEnthusiastPerson / length(listMerchEnthusiastPerson));
 		
 //		write 'AVG HAPPINESS (PARTY) ' + avgSocialInteractionPartyPerson;
 //		write 'AVG HAPPINESS (CHILL) ' + avgSocialInteractionChillPerson;
 //		write 'AVG HAPPINESS (ROCK) ' + avgSocialInteractionRockPerson;
 //		write 'AVG HAPPINESS (PARTYBREAKER) ' + avgSocialInteractionPartyBreakerPerson;
-//		write 'AVG HAPPINESS (MERCH) ' + avgSocialInteractionMerchEntusiastPerson;
+//		write 'AVG HAPPINESS (MERCH) ' + avgSocialInteractionMerchEnthusiastPerson;
 	}
 	
 	reflex partyContinues when: int(time) mod 180 = 0 and PartyBroken {
@@ -499,7 +499,7 @@ species RockPerson parent: Person
 	{
 		// Create a list of interesting people in the concert
 		list<Person> interestingPeopleAtConcert <- [];
-		ask agents of_species MerchEntusiastPerson
+		ask agents of_species MerchEnthusiastPerson
 		{
 			if self.location = myself.concertLocation and !(self in interestingPeopleAtConcert) and (self.trait_outgoing + self.trait_social) >= 8
 			{
@@ -570,7 +570,7 @@ species PartyBreakerPerson parent: Person
 	}
 }
 
-species MerchEntusiastPerson parent: Person
+species MerchEnthusiastPerson parent: Person
 {
 	// Personal trait
 	int trait_outgoing <- 5;
@@ -601,7 +601,7 @@ species MerchEntusiastPerson parent: Person
 		
 		if offer {
 			bool bought <- false;
-			ask MerchEntusiastPerson at_distance(1) {
+			ask MerchEnthusiastPerson at_distance(1) {
 				write self.name + " is in the shop, and will be offered merch";
 				do start_conversation (to :: [self], protocol :: 'fipa-contract-net', performative :: 'request', contents :: ['offer buy merch']);
 				social_interaction <- social_interaction + 1;
@@ -685,7 +685,7 @@ experiment FinalProject type: gui {
 		      data "ChillPerson" value: avgSocialInteractionChillPerson color: #green;
 		      data "RockPerson" value: avgSocialInteractionRockPerson color: #blue;
 		      data "PartyBreakerPerson" value: avgSocialInteractionPartyBreakerPerson color: #orange;
-		      data "MerchEntusiastPerson" value: avgSocialInteractionMerchEntusiastPerson color: #violet;
+		      data "MerchEnthusiastPerson" value: avgSocialInteractionMerchEnthusiastPerson color: #violet;
 		   }
 		}
 
@@ -699,7 +699,7 @@ experiment FinalProject type: gui {
 			species PartyPerson aspect:base;
 			species RockPerson aspect:base;
 			species ChillPerson aspect:base;
-			species MerchEntusiastPerson aspect:base;
+			species MerchEnthusiastPerson aspect:base;
 		}
 	}
 }
